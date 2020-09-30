@@ -16,6 +16,7 @@ class ChessGame:
 
         self.board = Board(self)
 
+
     def run_game(self):
 
         while True:
