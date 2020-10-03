@@ -1,107 +1,111 @@
-import pygame
-
-
 class Piece:
 
-    def __init__(self, ai_game, x, y, image):
-        self.screen = ai_game.screen
-        self.screen_rect = ai_game.screen.get_rect()
+    def __init__(self, rank, team, y, x):
+        self.rank = rank
+        self.team = team
+        self.x = x
+        self.y = y
+        self.num_moves = 0
 
-        self.image = self.image = pygame.image.load(image)
-        self.image = pygame.transform.scale(self.image, (90, 90))
-        self.rect = self.image.get_rect()
+    def get_rank(self):
+        return self.rank
 
-        self.rect.centerx = x
-        self.rect.centery = y
+    def get_team(self):
+        return self.team
 
-        self.dragging = False
+    def get_x(self):
+        return self.x
 
-    def draw(self):
-        self.screen.blit(self.image, self.rect)
+    def get_y(self):
+        return self.y
+
+    def set_x(self, x):
+        self.x = x
+
+    def set_y(self, y):
+        self.y = y
+
+    def generate_moves(self, board_state):
+        return []
 
 
 class King(Piece):
 
-    def __init__(self, role, ai_game):
-        if role == 'Black':
-            super().__init__(ai_game, 405, 45, 'images/b_king.png')
-        else:
-            super().__init__(ai_game, 405, 675, 'images/w_king.png')
+    def __init__(self, team, x, y):
+        super().__init__('king', team, x, y)
+
+    def generate_moves(self, board_state):
+        return [(self.x - 1, self.y - 1), (self.x, self.y - 1), (self.x + 1, self.y - 1),
+                (self.x - 1, self.y), (self.x + 1, self.y),
+                (self.x - 1, self.y + 1), (self.x, self.y + 1), (self.x + 1, self.y - 1)]
 
 
 class Queen(Piece):
 
-    def __init__(self, role, ai_game):
-        if role == 'Black':
-            super().__init__(ai_game, 315, 45, 'images/b_queen.png')
-        else:
-            super().__init__(ai_game, 315, 675, 'images/w_queen.png')
+    def __init__(self, team, x, y):
+        super().__init__('queen', team, x, y)
 
 
 class Bishop(Piece):
 
-    def __init__(self, role, ai_game, position):
-        if role == 'Black':
-            if position == 1:
-                super().__init__(ai_game, 225, 45, 'images/b_bishop.png')
-            else:
-                super().__init__(ai_game, 495, 45, 'images/b_bishop.png')
-        else:
-            if position == 1:
-                super().__init__(ai_game, 225, 675, 'images/w_bishop.png')
-            else:
-                super().__init__(ai_game, 495, 675, 'images/b_bishop.png')
+    def __init__(self, team, x, y):
+        super().__init__('bishop', team, x, y)
 
 
 class Knight(Piece):
 
-    def __init__(self, role, ai_game, position):
-        if role == 'Black':
-            if position == 1:
-                super().__init__(ai_game, 135, 45, 'images/b_knight.png')
-            else:
-                super().__init__(ai_game, 585, 45, 'images/b_knight.png')
-        else:
-            if position == 1:
-                super().__init__(ai_game, 135, 675, 'images/w_knight.png')
-            else:
-                super().__init__(ai_game, 585, 675, 'images/w_knight.png')
+    def __init__(self, team, x, y):
+        super().__init__('knight', team, x, y)
 
 
 class Rook(Piece):
 
-    def __init__(self, role, ai_game, position):
-        if role == 'Black':
-            if position == 1:
-                super().__init__(ai_game, 45, 45, 'images/b_rook.png')
-            else:
-                super().__init__(ai_game, 675, 45, 'images/b_rook.png')
-        else:
-            if position == 1:
-                super().__init__(ai_game, 45, 675, 'images/w_rook.png')
-            else:
-                super().__init__(ai_game, 675, 675, 'images/w_rook.png')
+    def __init__(self, team, x, y):
+        super().__init__('rook', team, x, y)
+
+    def generate_moves(self, board_state):
+        possible_moves = []
+        x = 0
+        y = 0
+        while x < 8:
+            possible_moves.append((x, self.y))
+            possible_moves.append((self.x, y))
+            x += 1
+            y += 1
+        return possible_moves
 
 
 class Pawn(Piece):
 
-    def __init__(self, role, ai_game, position):
-        if role == 'Black':
-            super().__init__(ai_game, (90 * position) + 45, 135, 'images/b_pawn.png')
+    def __init__(self, team, x, y):
+        super().__init__('pawn', team, x, y)
+
+    def generate_moves(self, board_state):
+
+        possible_moves = []
+        if self.team == 'b':
+            if -1 < self.y + 1 < 8:
+                if board_state[self.y + 1][self.x] is None:
+                    possible_moves.append((self.x, self.y + 1))
+                    if self.num_moves == 0:
+                        possible_moves.append((self.x, self.y + 2))
+            if 8 > self.y + 1 > -1 and 8 > self.x + 1 > -1:
+                if board_state[self.y + 1][self.x + 1] is not None:
+                    possible_moves.append((self.x + 1, self.y + 1))
+            if 8 > self.y + 1 > -1 and 8 > self.x - 1 > -1:
+                if board_state[self.y + 1][self.x - 1] is not None:
+                    possible_moves.append((self.x - 1, self.y + 1))
         else:
-            super().__init__(ai_game, (90 * position) + 45, 585, 'images/w_pawn.png')
+            if -1 < self.y - 1 < 8:
+                if board_state[self.y - 1][self.x] is None:
+                    possible_moves.append((self.x, self.y - 1))
+                    if self.num_moves == 0:
+                        possible_moves.append((self.x, self.y - 2))
+            if 8 > self.y - 1 > -1 and 8 > self.x - 1 > -1:
+                if board_state[self.y - 1][self.x - 1] is not None:
+                    possible_moves.append((self.x - 1, self.y - 1))
+            if 8 > self.y - 1 > -1 and 8 > self.x + 1 > -1:
+                if board_state[self.y - 1][self.x + 1] is not None:
+                    possible_moves.append((self.x + 1, self.y - 1))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return possible_moves

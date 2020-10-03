@@ -35,13 +35,16 @@ class ChessGame:
                         self.select_history.append(self.square_selected)
 
                     if len(self.select_history) == 2:
-                        if self.board.board[self.select_history[0][1]][self.select_history[0][0]] == '--':
+                        if self.board.board_object[self.select_history[0][1]][self.select_history[0][0]] is None:
                             self.select_history[0] = self.square_selected
                             self.select_history.pop(1)
                         else:
                             self.board.move(self.select_history)
                             self.select_history = []
                             self.square_selected = ()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_u:
+                        self.board.undo_move()
 
             self.screen.fill(self.settings.bg_color)
             self.board.draw_board()

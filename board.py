@@ -1,5 +1,6 @@
 import pygame
 from piece import *
+from moves import *
 
 
 class Board:
@@ -20,7 +21,31 @@ class Board:
             ['--', '--', '--', '--', '--', '--', '--', '--'],
             ['w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn'],
             ['w_rook', 'w_knight', 'w_bishop', 'w_queen', 'w_king', 'w_bishop', 'w_knight', 'w_rook']
-            ]
+        ]
+
+        self.board_object = []
+        self.board_row = []
+        for i in range(self.board_length):
+            for j in range(self.board_length):
+                if self.board[i][j] == '--':
+                    self.board_row.append(None)
+                else:
+                    temp = self.board[i][j]
+                    rank = temp[2::]
+                    if rank == 'rook':
+                        self.board_row.append(Rook(temp[0], i, j))
+                    elif rank == 'knight':
+                        self.board_row.append(Knight(temp[0], i, j))
+                    elif rank == 'bishop':
+                        self.board_row.append(Bishop(temp[0], i, j))
+                    elif rank == 'queen':
+                        self.board_row.append(Queen(temp[0], i, j))
+                    elif rank == 'pawn':
+                        self.board_row.append(Pawn(temp[0], i, j))
+                    else:
+                        self.board_row.append(King(temp[0], i, j))
+            self.board_object.append(self.board_row)
+            self.board_row = []
 
         self.pieces = ['w_king', 'b_king', 'w_queen', 'b_queen',
                        'w_bishop', 'b_bishop', 'w_knight', 'b_knight',
@@ -29,6 +54,8 @@ class Board:
         for piece in self.pieces:
             self.IMAGES[piece] = pygame.transform.scale(pygame.image.load('images/' + str(piece) + '.png'),
                                                         (self.size, self.size))
+
+        self.moves_made = []
 
     def draw_board(self):
         cnt = 0
@@ -44,9 +71,10 @@ class Board:
     def draw_piece(self):
         for i in range(self.board_length):
             for j in range(self.board_length):
-                piece = self.board[i][j]
-                if piece != '--':
-                    self.screen.blit(self.IMAGES[piece], (self.size * j, self.size * i, self.size, self.size))
+                piece = self.board_object[i][j]
+                if piece is not None:
+                    string = piece.get_team() + '_' + piece.get_rank()
+                    self.screen.blit(self.IMAGES[string], (self.size * j, self.size * i, self.size, self.size))
 
     def move(self, select_history):
         initial_coordinate = select_history[0]
@@ -57,16 +85,41 @@ class Board:
         destination_x = destination[0]
         destination_y = destination[1]
 
-        piece = self.board[initial_y][initial_x]
-        self.board[destination_y][destination_x] = piece
-        self.board[initial_y][initial_x] = '--'
+        piece = self.board_object[initial_y][initial_x]
+        destination_piece = self.board_object[destination_y][destination_x]
 
+        move_made = Moves(initial_x, initial_y, destination_x, destination_y, piece, destination_piece)
+        self.moves_made.append(move_made)
 
+        possible_moves = piece.generate_moves(self.board_object)
+        position = (destination_x, destination_y)
 
+        if position in possible_moves:
+            piece.set_x(destination_x)
+            piece.set_y(destination_y)
+            self.board_object[destination_y][destination_x] = piece
+            self.board_object[initial_y][initial_x] = None
+            piece.num_moves += 1
 
+    def undo_move(self):
+        if len(self.moves_made) == 0:
+            pass
+        else:
+            undo_move = self.moves_made.pop()
+            self.board_object[undo_move.destination_y][undo_move.destination_x] = undo_move.destination_piece
+            self.board_object[undo_move.initial_y][undo_move.initial_x] = undo_move.initial_piece
 
+            if self.board_object[undo_move.destination_y][undo_move.destination_x] is None:
+                pass
+            else:
+                dest_piece = self.board_object[undo_move.destination_y][undo_move.destination_x]
+                dest_piece.set_x(undo_move.destination_x)
+                dest_piece.set_y(undo_move.destination_y)
 
-
-
-
-
+            if self.board_object[undo_move.initial_y][undo_move.initial_x] is None:
+                pass
+            else:
+                init_piece = self.board_object[undo_move.initial_y][undo_move.initial_x]
+                init_piece.set_x(undo_move.initial_x)
+                init_piece.set_y(undo_move.initial_y)
+                init_piece.num_moves -= 1
