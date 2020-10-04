@@ -93,13 +93,16 @@ class Board:
 
         possible_moves = piece.generate_moves(self.board_object)
         position = (destination_x, destination_y)
-
+        if isinstance(piece, Queen):
+            print(position)
         if position in possible_moves:
             piece.set_x(destination_x)
             piece.set_y(destination_y)
             self.board_object[destination_y][destination_x] = piece
             self.board_object[initial_y][initial_x] = None
             piece.num_moves += 1
+        else:
+            print("Can't")
 
     def undo_move(self):
         if len(self.moves_made) == 0:
