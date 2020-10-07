@@ -49,7 +49,6 @@ class Queen(Piece):
         temp_rook = Rook(self.team, self.y, self.x)
         temp_bishop = Bishop(self.team, self.y, self.x)
         possible_moves = temp_rook.generate_moves(board_state) + temp_bishop.generate_moves(board_state)
-        print(possible_moves)
         return possible_moves
 
 
@@ -79,7 +78,6 @@ class Bishop(Piece):
                 else:
                     break
 
-        print(possible_moves)
         return possible_moves
 
 
@@ -130,7 +128,6 @@ class Rook(Piece):
                 else:
                     break
 
-        print(possible_moves)
         return possible_moves
 
 

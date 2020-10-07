@@ -16,6 +16,7 @@ class ChessGame:
 
         self.square_selected = ()
         self.select_history = []
+        self.w_turn = True
 
     def run_game(self):
 
@@ -31,17 +32,27 @@ class ChessGame:
                         self.square_selected = ()
                         self.select_history = []
                     else:
-                        self.square_selected = (row, col)
-                        self.select_history.append(self.square_selected)
+                        if len(self.select_history) == 0:
+                            if self.board.board_object[col][row] is None:
+                                pass
+                            elif self.w_turn:
+                                if self.board.board_object[col][row].team == 'w':
+                                    self.square_selected = (row, col)
+                                    self.select_history.append(self.square_selected)
+                            else:
+                                if self.board.board_object[col][row].team == 'b':
+                                    self.square_selected = (row, col)
+                                    self.select_history.append(self.square_selected)
+                        else:
+                            self.square_selected = (row, col)
+                            self.select_history.append(self.square_selected)
 
                     if len(self.select_history) == 2:
-                        if self.board.board_object[self.select_history[0][1]][self.select_history[0][0]] is None:
-                            self.select_history[0] = self.square_selected
-                            self.select_history.pop(1)
-                        else:
-                            self.board.move(self.select_history)
-                            self.select_history = []
-                            self.square_selected = ()
+                        if self.board.move(self.select_history):
+                            self.w_turn = not self.w_turn
+                        self.select_history = []
+                        self.square_selected = ()
+
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_u:
                         self.board.undo_move()
@@ -52,10 +63,6 @@ class ChessGame:
             pygame.display.flip()
 
 
-
-
 if __name__ == '__main__':
-
     ai = ChessGame()
     ai.run_game()
-

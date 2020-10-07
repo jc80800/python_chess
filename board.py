@@ -1,6 +1,7 @@
 import pygame
 from piece import *
 from moves import *
+import sys
 
 
 class Board:
@@ -93,16 +94,23 @@ class Board:
 
         possible_moves = piece.generate_moves(self.board_object)
         position = (destination_x, destination_y)
-        if isinstance(piece, Queen):
-            print(position)
         if position in possible_moves:
+            taken_piece = self.board_object[destination_y][destination_x]
+            if isinstance(taken_piece, King):
+                if (taken_piece.team == 'b'):
+                    print("Black has won")
+                else:
+                    print("White has won")
+                sys.exit()
             piece.set_x(destination_x)
             piece.set_y(destination_y)
             self.board_object[destination_y][destination_x] = piece
             self.board_object[initial_y][initial_x] = None
             piece.num_moves += 1
+            return True
         else:
-            print("Can't")
+            return False
+
 
     def undo_move(self):
         if len(self.moves_made) == 0:
